@@ -1,0 +1,93 @@
+import java.util.Scanner;
+public class SudokuSolver {
+
+    private static final int SIZE = 9;
+
+    // Reads a 9x9 Sudoku grid from user input
+    public static int[][] readGrid(Scanner scanner) {
+        int[][] grid = new int[SIZE][SIZE];
+        System.out.println("Enter the Sudoku grid row by row (use 0 for empty cells):");
+        for (int i = 0; i < SIZE; i++) {
+            while (true) {
+                System.out.printf("Row %d (9 digits separated by spaces): ", i + 1);
+                String[] tokens = scanner.nextLine().trim().split("\\s+");
+                if (tokens.length == SIZE) {
+                    try {
+                        for (int j = 0; j < SIZE; j++) {
+                            int val = Integer.parseInt(tokens[j]);
+                            if (val < 0 || val > 9) throw new NumberFormatException();
+                            grid[i][j] = val;
+                        }
+                        break;
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid input. Please enter 9 integers in [0-9] separated by spaces.");
+                    }
+                } else {
+                    System.out.println("Please enter exactly 9 numbers for this row.");
+                }
+            }
+        }
+        return grid;
+    }
+
+    // Checks if placing 'num' at grid[row][col] is valid
+    private static boolean isValid(int[][] grid, int row, int col, int num) {
+        for (int x = 0; x < SIZE; x++) {
+            if (grid[row][x] == num || grid[x][col] == num)
+                return false;
+        }
+        int startRow = row - row % 3, startCol = col - col % 3;
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                if (grid[startRow + i][startCol + j] == num)
+                    return false;
+        return true;
+    }
+
+    // Solves the Sudoku using backtracking
+    public static boolean solveSudoku(int[][] grid) {
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                if (grid[row][col] == 0) {
+                    for (int num = 1; num <= SIZE; num++) {
+                        if (isValid(grid, row, col, num)) {
+                            grid[row][col] = num;
+                            if (solveSudoku(grid))
+                                return true;
+                            grid[row][col] = 0; // backtrack
+                        }
+                    }
+                    return false; // no valid number found; backtrack
+                }
+            }
+        }
+        return true; // solved
+    }
+
+    // Prints the Sudoku grid nicely
+    public static void printGrid(int[][] grid) {
+        System.out.println("\nSolved Sudoku Grid:");
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                System.out.print(grid[i][j] + " ");
+                if ((j + 1) % 3 == 0 && j < SIZE - 1) System.out.print("| ");
+            }
+            System.out.println();
+            if ((i + 1) % 3 == 0 && i < SIZE - 1)
+                System.out.println("---------------------");
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        int[][] grid = readGrid(scanner);
+
+        if (solveSudoku(grid)) {
+            printGrid(grid);
+        } else {
+            System.out.println("\n❌ No solution exists for the given Sudoku.");
+        }
+        scanner.close();
+    }
+}
+
